@@ -3,8 +3,8 @@ services:
     name: furnispace
     env: node
     plan: free
-    buildCommand: npm install && node database/seed.js
-    startCommand: node app.js
+    buildCommand: npm install
+    startCommand: node database/seed.js && node app.js
     envVars:
       - key: NODE_ENV
         value: production
@@ -25,6 +25,8 @@ services:
       - key: EMAIL_FROM
         sync: false
       - key: ADMIN_EMAIL
+        sync: false
+      - key: ADMIN_PASSWORD
         sync: false
       - key: SITE_URL
         sync: false
