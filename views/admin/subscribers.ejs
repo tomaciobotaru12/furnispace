@@ -1,0 +1,40 @@
+<%- include('layout', { title, activePage: 'subscribers' }) %>
+
+<div class="admin-card">
+  <div class="admin-card-header">
+    <h2>Newsletter Subscribers <span style="font-weight:400;color:var(--muted);font-size:.85rem">(<%= subscribers.length %>)</span></h2>
+    <a href="#" onclick="copyEmails()" class="btn btn-ghost btn-sm">Copy All Emails</a>
+  </div>
+  <div class="admin-table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Email</th>
+          <th>Subscribed</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% subscribers.forEach((s, i) => { %>
+        <tr>
+          <td class="td-muted"><%= i + 1 %></td>
+          <td><%= s.email %></td>
+          <td class="td-muted"><%= new Date(s.created_at).toLocaleDateString('en-GB', {day:'2-digit',month:'short',year:'numeric'}) %></td>
+        </tr>
+        <% }) %>
+        <% if (!subscribers.length) { %>
+        <tr><td colspan="3" style="text-align:center;color:var(--muted);padding:2rem">No subscribers yet.</td></tr>
+        <% } %>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+function copyEmails() {
+  const emails = <%- JSON.stringify(subscribers.map(s => s.email)) %>;
+  navigator.clipboard.writeText(emails.join(', ')).then(() => alert('Emails copied!'));
+}
+</script>
+
+<%- include('layout-end') %>

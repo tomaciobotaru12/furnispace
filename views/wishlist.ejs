@@ -1,0 +1,86 @@
+<%- include('partials/head') %>
+<%- include('partials/header') %>
+
+<section class="section wishlist-section">
+  <div class="container">
+    <h1 class="page-title">Your Wishlist <span id="wishlist-page-count"></span></h1>
+
+    <div id="wishlist-loading" style="text-align:center;padding:3rem 0">
+      <p>Loading your wishlist...</p>
+    </div>
+
+    <div id="wishlist-empty" style="display:none;text-align:center;padding:4rem 0">
+      <p style="font-size:3rem;margin-bottom:1rem">🤍</p>
+      <h2>Your wishlist is empty</h2>
+      <p>Save items you love by clicking the heart icon on any product.</p>
+      <a href="/shop" class="btn btn-primary" style="margin-top:1.5rem">Browse Products</a>
+    </div>
+
+    <div id="wishlist-grid" class="products-grid" style="display:none"></div>
+  </div>
+</section>
+
+<script>
+document.addEventListener('DOMContentLoaded', async () => {
+  const ids = JSON.parse(localStorage.getItem('furnispace_wishlist') || '[]');
+  const loading = document.getElementById('wishlist-loading');
+  const empty = document.getElementById('wishlist-empty');
+  const grid = document.getElementById('wishlist-grid');
+  const countEl = document.getElementById('wishlist-page-count');
+
+  loading.style.display = 'none';
+
+  if (!ids.length) {
+    empty.style.display = '';
+    return;
+  }
+
+  try {
+    const res = await fetch('/api/wishlist?ids=' + ids.join(','));
+    const products = await res.json();
+
+    if (!products.length) {
+      empty.style.display = '';
+      return;
+    }
+
+    countEl.textContent = `(${products.length})`;
+    grid.style.display = '';
+
+    products.forEach(p => {
+      const price = p.sale_price
+        ? `<span class="price-sale">${p.sale_price.toLocaleString('ro-RO')} RON</span> <span class="price-original">${p.price.toLocaleString('ro-RO')} RON</span>`
+        : `<span class="price-regular">${p.price.toLocaleString('ro-RO')} RON</span>`;
+
+      const ecoHtml = Array.from({length:5}, (_,i) =>
+        `<span class="eco-dot ${i < p.eco_score ? 'active' : ''}"></span>`
+      ).join('') + '<span class="eco-label">Eco</span>';
+
+      grid.insertAdjacentHTML('beforeend', `
+        <div class="product-card">
+          <div class="product-card-img-wrap">
+            <a href="/product/${p.slug}">
+              <img src="${p.image}" alt="${p.name}" loading="lazy">
+            </a>
+            ${p.sale_price ? '<span class="badge-sale">Sale</span>' : ''}
+            <button class="wishlist-btn active" data-id="${p.id}" data-name="${p.name}" data-price="${p.sale_price || p.price}" data-image="${p.image}" aria-label="Remove from wishlist">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+            </button>
+            <div class="eco-badge">${ecoHtml}</div>
+          </div>
+          <div class="product-card-body">
+            <h3><a href="/product/${p.slug}">${p.name}</a></h3>
+            <div class="product-price">${price}</div>
+            <a href="/product/${p.slug}" class="btn btn-primary btn-sm">View Product</a>
+          </div>
+        </div>
+      `);
+    });
+  } catch(e) {
+    loading.textContent = 'Could not load wishlist.';
+    loading.style.display = '';
+  }
+});
+</script>
+
+<%- include('partials/footer') %>

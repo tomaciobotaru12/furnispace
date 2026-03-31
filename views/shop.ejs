@@ -1,0 +1,128 @@
+<%- include('partials/head') %>
+<%- include('partials/header') %>
+
+<!-- SHOP BANNER -->
+<section class="shop-banner">
+  <div class="container">
+    <% if (category) { %>
+    <div class="breadcrumb"><a href="/">Home</a> › <a href="/shop">Shop</a> › <%= category.name %></div>
+    <span class="shop-banner-icon"><%= category.icon %></span>
+    <h1><%= category.name %></h1>
+    <% if (category.description) { %>
+    <p><%= category.description %></p>
+    <% } %>
+    <% } else { %>
+    <div class="breadcrumb"><a href="/">Home</a> › Shop</div>
+    <h1>All Products</h1>
+    <p>Browse our full collection of sustainable furniture.</p>
+    <% } %>
+  </div>
+</section>
+
+<!-- SHOP MAIN -->
+<section class="section shop-section">
+  <div class="container shop-layout">
+
+    <!-- Filters sidebar -->
+    <aside class="shop-filters">
+      <h3>Filters</h3>
+      <form method="GET" action="<%= category ? '/shop/' + category.slug : '/shop' %>" id="filter-form">
+
+        <div class="filter-group">
+          <label>Sort by</label>
+          <select name="sort" onchange="this.form.submit()">
+            <option value="default"  <%= sort === 'default'    ? 'selected' : '' %>>Default</option>
+            <option value="price_asc"  <%= sort === 'price_asc'  ? 'selected' : '' %>>Price: Low → High</option>
+            <option value="price_desc" <%= sort === 'price_desc' ? 'selected' : '' %>>Price: High → Low</option>
+            <option value="name_asc"   <%= sort === 'name_asc'   ? 'selected' : '' %>>Name A–Z</option>
+            <option value="eco_desc"   <%= sort === 'eco_desc'   ? 'selected' : '' %>>Most Eco-Friendly</option>
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <label>Eco Score (min)</label>
+          <div class="eco-filter-btns">
+            <% [0,3,4,5].forEach(e => { %>
+            <button type="button" class="eco-filter-btn <%= minEco == e ? 'active' : '' %>" data-value="<%= e %>"><%= e === 0 ? 'All' : '🌿'.repeat(e) %></button>
+            <% }) %>
+            <input type="hidden" name="eco" id="eco-filter-input" value="<%= minEco %>">
+          </div>
+        </div>
+
+        <div class="filter-group">
+          <label>Max Price: <strong id="price-label"><%= maxPrice >= 99999 ? '∞' : maxPrice + ' RON' %></strong></label>
+          <input type="range" name="max_price" min="299" max="4999" step="100"
+            value="<%= maxPrice >= 99999 ? 4999 : maxPrice %>"
+            id="price-slider"
+            oninput="document.getElementById('price-label').textContent = this.value + ' RON'">
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-sm" style="width:100%">Apply Filters</button>
+        <a href="<%= category ? '/shop/' + category.slug : '/shop' %>" class="btn btn-outline btn-sm" style="width:100%;margin-top:.5rem">Reset</a>
+      </form>
+
+      <!-- Other categories -->
+      <div class="filter-group" style="margin-top:2rem">
+        <label>Browse Rooms</label>
+        <ul class="cat-list">
+          <li class="<%= !category ? 'active' : '' %>"><a href="/shop">All</a></li>
+          <% categories.forEach(c => { %>
+          <li class="<%= category && category.slug === c.slug ? 'active' : '' %>">
+            <a href="/shop/<%= c.slug %>"><%= c.icon %> <%= c.name %></a>
+          </li>
+          <% }) %>
+        </ul>
+      </div>
+    </aside>
+
+    <!-- Products grid -->
+    <div class="shop-main">
+      <div class="shop-toolbar">
+        <p class="results-count"><%= total %> product<%= total !== 1 ? 's' : '' %></p>
+      </div>
+
+      <% if (products.length) { %>
+      <div class="products-grid">
+        <% products.forEach((product, i) => { %>
+        <%- include('partials/product-card', { product, delay: i * 40 }) %>
+        <% }) %>
+      </div>
+      <% } else { %>
+      <div class="empty-state">
+        <p>No products found. Try adjusting your filters.</p>
+        <a href="<%= category ? '/shop/' + category.slug : '/shop' %>" class="btn btn-outline">Reset Filters</a>
+      </div>
+      <% } %>
+
+      <!-- Pagination -->
+      <% if (totalPages > 1) { %>
+      <div class="pagination">
+        <% if (page > 1) { %>
+        <a href="?page=<%= page - 1 %>&sort=<%= sort %>&eco=<%= minEco %>&max_price=<%= maxPrice %>" class="page-btn">← Prev</a>
+        <% } %>
+        <% for (let p = 1; p <= totalPages; p++) { %>
+        <a href="?page=<%= p %>&sort=<%= sort %>&eco=<%= minEco %>&max_price=<%= maxPrice %>"
+           class="page-btn <%= p === page ? 'active' : '' %>"><%= p %></a>
+        <% } %>
+        <% if (page < totalPages) { %>
+        <a href="?page=<%= page + 1 %>&sort=<%= sort %>&eco=<%= minEco %>&max_price=<%= maxPrice %>" class="page-btn">Next →</a>
+        <% } %>
+      </div>
+      <% } %>
+    </div>
+
+  </div>
+</section>
+
+<script>
+  // Eco filter buttons
+  document.querySelectorAll('.eco-filter-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.eco-filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('eco-filter-input').value = btn.dataset.value;
+    });
+  });
+</script>
+
+<%- include('partials/footer') %>

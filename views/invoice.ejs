@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Invoice <%= order.order_number %> – FurniSpace</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;font-size:13px;color:#2c2c2c;background:#fff}
+    .invoice-wrap{max-width:800px;margin:0 auto;padding:2rem}
+    .invoice-header{background:#2c2c2c;color:#fff;padding:2rem;display:flex;justify-content:space-between;align-items:flex-start;border-radius:6px 6px 0 0}
+    .invoice-logo{font-size:1.5rem;font-weight:700;letter-spacing:-0.5px}
+    .invoice-logo span{color:#b5935a}
+    .invoice-logo p{font-size:0.75rem;font-weight:400;margin-top:4px;opacity:0.7}
+    .invoice-meta{text-align:right;font-size:0.8rem;opacity:0.85}
+    .invoice-meta strong{display:block;font-size:1.1rem;margin-bottom:4px}
+    .invoice-body{padding:2rem;border:1px solid #e8e2d9;border-top:none;border-radius:0 0 6px 6px}
+    .invoice-parties{display:grid;grid-template-columns:1fr 1fr;gap:2rem;margin-bottom:2rem}
+    .party-label{font-size:0.7rem;text-transform:uppercase;letter-spacing:1px;color:#b5935a;margin-bottom:6px;font-weight:600}
+    .party-name{font-weight:600;font-size:1rem;margin-bottom:4px}
+    .party-detail{color:#6b6b6b;line-height:1.6}
+    .invoice-details{display:flex;gap:2rem;margin-bottom:2rem;padding:1rem;background:#f9f6f1;border-radius:4px}
+    .detail-item{flex:1}
+    .detail-label{font-size:0.7rem;text-transform:uppercase;letter-spacing:1px;color:#6b6b6b;margin-bottom:4px}
+    .detail-value{font-weight:600}
+    table{width:100%;border-collapse:collapse;margin-bottom:1.5rem}
+    th{background:#2c2c2c;color:#fff;padding:.6rem 1rem;text-align:left;font-size:0.8rem;text-transform:uppercase;letter-spacing:0.5px}
+    td{padding:.6rem 1rem;border-bottom:1px solid #e8e2d9}
+    tr:nth-child(even) td{background:#f9f6f1}
+    .totals{margin-left:auto;width:260px}
+    .totals-row{display:flex;justify-content:space-between;padding:.4rem 0;border-bottom:1px solid #e8e2d9;font-size:0.85rem}
+    .totals-row.grand{font-weight:700;font-size:1rem;border-bottom:none;margin-top:.5rem}
+    .invoice-footer{text-align:center;margin-top:2rem;font-size:0.75rem;color:#6b6b6b;padding-top:1rem;border-top:1px solid #e8e2d9}
+    .print-btn{display:block;margin:1.5rem auto;padding:.6rem 2rem;background:#b5935a;color:#fff;border:none;border-radius:4px;cursor:pointer;font-size:0.9rem}
+    @media print{.print-btn{display:none}.invoice-wrap{padding:0}}
+  </style>
+</head>
+<body>
+<div class="invoice-wrap">
+  <div class="invoice-header">
+    <div class="invoice-logo">Furni<span>Space</span><p>Thoughtfully designed furniture</p></div>
+    <div class="invoice-meta">
+      <strong>INVOICE</strong>
+      <div><%= order.order_number %></div>
+      <div><%= new Date(order.created_at).toLocaleDateString('en-GB') %></div>
+    </div>
+  </div>
+
+  <div class="invoice-body">
+    <div class="invoice-parties">
+      <div>
+        <div class="party-label">From</div>
+        <div class="party-name">FurniSpace SRL</div>
+        <div class="party-detail">
+          Str. Mobilierului 12, Sector 1<br>
+          București, 010001<br>
+          Romania<br>
+          contact@furnispace.ro
+        </div>
+      </div>
+      <div>
+        <div class="party-label">Bill To</div>
+        <% if (billing) { %>
+        <div class="party-name"><%= billing.first_name %> <%= billing.last_name %></div>
+        <div class="party-detail">
+          <%= billing.address %><br>
+          <%= billing.city %><% if (billing.county) { %>, <%= billing.county %><% } %><br>
+          <%= billing.country %><br>
+          <%= billing.email %>
+          <% if (billing.phone) { %><br><%= billing.phone %><% } %>
+        </div>
+        <% } %>
+      </div>
+    </div>
+
+    <div class="invoice-details">
+      <div class="detail-item"><div class="detail-label">Order Date</div><div class="detail-value"><%= new Date(order.created_at).toLocaleDateString('en-GB') %></div></div>
+      <div class="detail-item"><div class="detail-label">Status</div><div class="detail-value"><%= order.status.toUpperCase() %></div></div>
+      <div class="detail-item"><div class="detail-label">Payment</div><div class="detail-value"><%= order.payment_method || 'Stripe' %></div></div>
+    </div>
+
+    <table>
+      <thead>
+        <tr><th>Product</th><th>Unit Price</th><th>Qty</th><th>Total</th></tr>
+      </thead>
+      <tbody>
+        <% items.forEach(item => { %>
+        <tr>
+          <td><%= item.product_name %></td>
+          <td><%= item.price.toLocaleString('ro-RO') %> RON</td>
+          <td><%= item.quantity %></td>
+          <td><%= (item.price * item.quantity).toLocaleString('ro-RO') %> RON</td>
+        </tr>
+        <% }) %>
+      </tbody>
+    </table>
+
+    <div class="totals">
+      <div class="totals-row"><span>Subtotal</span><span><%= order.subtotal.toLocaleString('ro-RO') %> RON</span></div>
+      <div class="totals-row"><span>Shipping</span><span><%= order.shipping === 0 ? 'Free' : order.shipping.toLocaleString('ro-RO') + ' RON' %></span></div>
+      <div class="totals-row"><span>Tax</span><span><%= order.tax === 0 ? '—' : order.tax.toLocaleString('ro-RO') + ' RON' %></span></div>
+      <div class="totals-row grand"><span>Total</span><span><%= order.total.toLocaleString('ro-RO') %> RON</span></div>
+    </div>
+
+    <div class="invoice-footer">
+      <p>FurniSpace SRL · CUI RO12345678 · J40/1234/2024</p>
+      <p style="margin-top:4px">Generated on <%= new Date().toLocaleString('en-GB') %></p>
+    </div>
+  </div>
+
+  <button class="print-btn" onclick="window.print()">Print Invoice</button>
+</div>
+</body>
+</html>

@@ -1,0 +1,176 @@
+<% const hideCartBubble = true %>
+<%- include('partials/head') %>
+<script src="https://js.stripe.com/v3/"></script>
+<%- include('partials/header') %>
+
+<section class="section checkout-section">
+  <div class="container">
+    <h1 class="page-title">Checkout</h1>
+
+    <div class="checkout-layout">
+      <!-- Billing form -->
+      <div class="checkout-form-wrap">
+        <h2>Billing Details</h2>
+        <form id="payment-form">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="first_name">First Name *</label>
+              <input type="text" id="first_name" name="first_name" required>
+            </div>
+            <div class="form-group">
+              <label for="last_name">Last Name *</label>
+              <input type="text" id="last_name" name="last_name" required>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="email">Email *</label>
+            <input type="email" id="email" name="email" required>
+          </div>
+          <div class="form-group">
+            <label for="phone">Phone</label>
+            <input type="tel" id="phone" name="phone">
+          </div>
+          <div class="form-group">
+            <label for="address">Address *</label>
+            <input type="text" id="address" name="address" required>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="city">City *</label>
+              <input type="text" id="city" name="city" required>
+            </div>
+            <div class="form-group">
+              <label for="county">County</label>
+              <input type="text" id="county" name="county">
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="postal_code">Postal Code *</label>
+            <input type="text" id="postal_code" name="postal_code" required>
+          </div>
+
+          <h2 style="margin-top:2rem">Payment</h2>
+          <div class="form-group">
+            <label>Card Details</label>
+            <div id="card-element" class="stripe-input"></div>
+            <div id="card-errors" class="form-error" role="alert"></div>
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-lg" id="submit-btn" style="width:100%;margin-top:1.5rem">
+            <span id="btn-text">Pay <span id="total-display"><%= total.toLocaleString('ro-RO') %> RON</span></span>
+            <span id="btn-spinner" style="display:none">Processing...</span>
+          </button>
+        </form>
+      </div>
+
+      <!-- Order summary -->
+      <div class="checkout-summary">
+        <h2>Your Order</h2>
+        <% cartItems.forEach(item => { %>
+        <div class="checkout-item">
+          <img src="<%= item.image %>" alt="<%= item.name %>" width="60" height="60" loading="lazy">
+          <div>
+            <p class="checkout-item-name"><%= item.name %></p>
+            <p class="checkout-item-qty">Qty: <%= item.quantity %></p>
+          </div>
+          <span><%= item.lineTotal.toLocaleString('ro-RO') %> RON</span>
+        </div>
+        <% }) %>
+        <div class="summary-row"><span>Subtotal</span><span><%= subtotal.toLocaleString('ro-RO') %> RON</span></div>
+        <div class="summary-row"><span>Shipping</span><span><%= shipping === 0 ? 'Free' : shipping + ' RON' %></span></div>
+        <div class="summary-row summary-total"><span>Total</span><strong><%= total.toLocaleString('ro-RO') %> RON</strong></div>
+        <div class="secure-badge">🔒 Secured by Stripe</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+const stripePK = '<%= stripePK %>';
+
+if (stripePK && stripePK !== 'pk_test_placeholder' && !stripePK.startsWith('undefined')) {
+  const stripe = Stripe(stripePK);
+  const elements = stripe.elements();
+  const cardElement = elements.create('card', {
+    style: {
+      base: {
+        fontFamily: '"Inter", sans-serif',
+        fontSize: '16px',
+        color: '#2c2c2c',
+        '::placeholder': { color: '#aaa' },
+      }
+    }
+  });
+  cardElement.mount('#card-element');
+  cardElement.on('change', e => {
+    document.getElementById('card-errors').textContent = e.error ? e.error.message : '';
+  });
+
+  document.getElementById('payment-form').addEventListener('submit', async e => {
+    e.preventDefault();
+    const btn = document.getElementById('submit-btn');
+    btn.disabled = true;
+    document.getElementById('btn-text').style.display = 'none';
+    document.getElementById('btn-spinner').style.display = '';
+
+    const billing = {
+      first_name:  document.getElementById('first_name').value,
+      last_name:   document.getElementById('last_name').value,
+      email:       document.getElementById('email').value,
+      phone:       document.getElementById('phone').value,
+      address:     document.getElementById('address').value,
+      city:        document.getElementById('city').value,
+      county:      document.getElementById('county').value,
+      postal_code: document.getElementById('postal_code').value,
+    };
+
+    // Create payment intent
+    const intentRes = await fetch('/checkout/create-payment-intent', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(billing),
+    });
+    const { clientSecret, error: intentErr } = await intentRes.json();
+    if (intentErr) {
+      document.getElementById('card-errors').textContent = intentErr;
+      btn.disabled = false;
+      document.getElementById('btn-text').style.display = '';
+      document.getElementById('btn-spinner').style.display = 'none';
+      return;
+    }
+
+    // Confirm payment
+    const { error, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
+      payment_method: {
+        card: cardElement,
+        billing_details: { name: `${billing.first_name} ${billing.last_name}`, email: billing.email },
+      }
+    });
+
+    if (error) {
+      document.getElementById('card-errors').textContent = error.message;
+      btn.disabled = false;
+      document.getElementById('btn-text').style.display = '';
+      document.getElementById('btn-spinner').style.display = 'none';
+    } else if (paymentIntent.status === 'succeeded') {
+      // Save order
+      const completeRes = await fetch('/checkout/complete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ payment_intent_id: paymentIntent.id, billing }),
+      });
+      const { orderNumber } = await completeRes.json();
+      window.location.href = '/checkout/success/' + orderNumber;
+    }
+  });
+} else {
+  // Stripe not configured – show demo message
+  document.getElementById('card-element').innerHTML = '<p style="color:#b5935a;padding:.75rem 0">⚠️ Stripe keys not configured. Set STRIPE_PUBLISHABLE_KEY in .env to enable payments.</p>';
+  document.getElementById('payment-form').addEventListener('submit', e => {
+    e.preventDefault();
+    alert('Stripe is not configured. Add your keys in .env to enable checkout.');
+  });
+}
+</script>
+
+<%- include('partials/footer') %>

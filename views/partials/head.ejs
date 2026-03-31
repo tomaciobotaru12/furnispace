@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %></title>
+  <meta name="description" content="<%= typeof metaDesc !== 'undefined' ? metaDesc : 'FurniSpace – Sustainable furniture for every room. Shop sofas, beds, tables and more.' %>">
+
+  <!-- Preload hero image if on homepage -->
+  <% if (typeof isHome !== 'undefined' && isHome) { %>
+  <link rel="preload" as="image" href="/images/hero-bg.webp">
+  <% } %>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+  <!-- AOS -->
+  <link rel="stylesheet" href="https://unpkg.com/aos@2.3.4/dist/aos.css">
+
+  <!-- Main CSS -->
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>

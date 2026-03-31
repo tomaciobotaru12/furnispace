@@ -1,0 +1,122 @@
+<%- include('partials/head') %>
+<%- include('partials/header') %>
+
+<!-- HERO -->
+<section class="hero" id="hero">
+  <div class="hero-overlay"></div>
+  <div class="hero-content container">
+    <p class="hero-sub" data-aos="fade-up" data-aos-delay="100">New Collection 2025</p>
+    <h1 data-aos="fade-up" data-aos-delay="200">Furniture That<br>Feels Like Home</h1>
+    <p class="hero-desc" data-aos="fade-up" data-aos-delay="300">Sustainable designs crafted to last. Every piece tells a story.</p>
+    <div class="hero-btns" data-aos="fade-up" data-aos-delay="400">
+      <a href="/shop" class="btn btn-primary">Shop Now</a>
+      <a href="/visualizer" class="btn btn-outline">Try Room Visualizer</a>
+    </div>
+  </div>
+</section>
+
+<!-- CATEGORIES -->
+<section class="section categories-section">
+  <div class="container">
+    <h2 class="section-title" data-aos="fade-up">Shop by Room</h2>
+    <div class="categories-grid">
+      <% categories.forEach((cat, i) => { %>
+      <a href="/shop/<%= cat.slug %>" class="category-card tilt-card" data-aos="fade-up" data-aos-delay="<%= i * 60 %>">
+        <span class="cat-icon"><%= cat.icon %></span>
+        <span class="cat-name"><%= cat.name %></span>
+      </a>
+      <% }) %>
+    </div>
+  </div>
+</section>
+
+<!-- BESTSELLERS -->
+<section class="section products-section" style="background: var(--color-light)">
+  <div class="container">
+    <h2 class="section-title" data-aos="fade-up">Bestsellers</h2>
+    <p class="section-subtitle" data-aos="fade-up" data-aos-delay="100">Our most-loved pieces, chosen by thousands of happy homes.</p>
+    <div class="products-grid">
+      <% featured.forEach((product, i) => { %>
+      <%- include('partials/product-card', { product, delay: i * 60 }) %>
+      <% }) %>
+    </div>
+    <div style="text-align:center;margin-top:2.5rem" data-aos="fade-up">
+      <a href="/shop" class="btn btn-outline">View All Products</a>
+    </div>
+  </div>
+</section>
+
+<!-- SHOP THE LOOK -->
+<section class="section shop-look-section">
+  <div class="container">
+    <h2 class="section-title" data-aos="fade-up">Shop the Look</h2>
+    <p class="section-subtitle" data-aos="fade-up" data-aos-delay="100">Curated room bundles – get the complete look in one click.</p>
+
+    <div class="bundles-tabs">
+      <% bundles.forEach((bundle, i) => { %>
+      <button class="bundle-tab <%= i === 0 ? 'active' : '' %>" data-tab="bundle-<%= bundle.slug %>">
+        <%= bundle.name %>
+      </button>
+      <% }) %>
+    </div>
+
+    <% bundles.forEach((bundle, bi) => { %>
+    <div class="bundle-panel <%= bi === 0 ? 'active' : '' %>" id="bundle-<%= bundle.slug %>">
+      <div class="products-grid">
+        <% bundle.products.forEach((product, i) => { %>
+        <%- include('partials/product-card', { product, delay: i * 80 }) %>
+        <% }) %>
+      </div>
+      <div style="text-align:center;margin-top:2rem">
+        <a href="/shop/<%= bundle.slug %>" class="btn btn-primary">Shop <%= bundle.name %></a>
+      </div>
+    </div>
+    <% }) %>
+  </div>
+</section>
+
+<!-- ROOM VISUALIZER CTA -->
+<section class="section visualizer-cta">
+  <div class="container" data-aos="zoom-in">
+    <span class="cta-badge">New Feature</span>
+    <h2>Design Your Dream Room</h2>
+    <p>Answer a few questions and our Room Visualizer will suggest the perfect furniture bundle for your style and budget.</p>
+    <a href="/visualizer" class="btn btn-primary btn-lg">Try the Room Visualizer</a>
+  </div>
+</section>
+
+<!-- USP STRIP -->
+<section class="usp-strip">
+  <div class="container usp-grid">
+    <div class="usp-card" data-aos="fade-up" data-aos-delay="0">
+      <span class="usp-icon">🚚</span>
+      <div>
+        <strong><span class="counter" data-target="500">0</span>+</strong>
+        <p>Free Deliveries</p>
+      </div>
+    </div>
+    <div class="usp-card" data-aos="fade-up" data-aos-delay="100">
+      <span class="usp-icon">↩️</span>
+      <div>
+        <strong><span class="counter" data-target="30">0</span>-day Returns</strong>
+        <p>No questions asked</p>
+      </div>
+    </div>
+    <div class="usp-card" data-aos="fade-up" data-aos-delay="200">
+      <span class="usp-icon">🌿</span>
+      <div>
+        <strong>Eco-Certified</strong>
+        <p>FSC &amp; sustainable materials</p>
+      </div>
+    </div>
+    <div class="usp-card" data-aos="fade-up" data-aos-delay="300">
+      <span class="usp-icon">🔒</span>
+      <div>
+        <strong>Secure Payment</strong>
+        <p>Stripe &amp; PayPal</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<%- include('partials/footer') %>

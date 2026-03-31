@@ -1,0 +1,13 @@
+<%- include('partials/head') %>
+<%- include('partials/header') %>
+
+<section class="section" style="text-align:center;padding:6rem 1rem;min-height:60vh;display:flex;align-items:center">
+  <div class="container">
+    <h1 style="font-size:5rem;color:var(--color-accent);margin-bottom:0">404</h1>
+    <h2 style="margin:.5rem 0 1rem">Page Not Found</h2>
+    <p><%= typeof message !== 'undefined' ? message : "The page you're looking for doesn't exist." %></p>
+    <a href="/" class="btn btn-primary" style="margin-top:2rem">Back to Home</a>
+  </div>
+</section>
+
+<%- include('partials/footer') %>

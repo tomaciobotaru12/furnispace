@@ -1,0 +1,104 @@
+<%- include('partials/head') %>
+<%- include('partials/header') %>
+
+<section class="product-page section">
+  <div class="container">
+    <div class="breadcrumb"><a href="/">Home</a> › <a href="/shop">Shop</a> › <a href="/shop/<%= product.category_slug %>"><%= product.category_name %></a> › <%= product.name %></div>
+
+    <div class="product-layout">
+      <!-- Gallery -->
+      <div class="product-gallery" data-aos="fade-right">
+        <div class="product-main-img">
+          <img src="<%= product.image %>" alt="<%= product.name %>" id="main-product-img">
+        </div>
+      </div>
+
+      <!-- Summary -->
+      <div class="product-summary" data-aos="fade-left">
+        <span class="product-category-tag"><a href="/shop/<%= product.category_slug %>"><%= product.category_name %></a></span>
+        <h1 class="product-title"><%= product.name %></h1>
+
+        <div class="product-price-wrap">
+          <% if (product.sale_price) { %>
+          <span class="price-sale price-lg"><%= product.sale_price.toLocaleString('ro-RO') %> RON</span>
+          <span class="price-original price-lg"><%= product.price.toLocaleString('ro-RO') %> RON</span>
+          <span class="badge-sale">Sale</span>
+          <% } else { %>
+          <span class="price-regular price-lg"><%= product.price.toLocaleString('ro-RO') %> RON</span>
+          <% } %>
+        </div>
+
+        <!-- Eco score -->
+        <div class="product-eco">
+          <% for (let e = 1; e <= 5; e++) { %>
+          <span class="eco-dot lg <%= e <= product.eco_score ? 'active' : '' %>"></span>
+          <% } %>
+          <span class="eco-label">Eco Score</span>
+        </div>
+
+        <p class="product-short-desc"><%= product.short_description %></p>
+
+        <!-- Specs -->
+        <div class="product-specs">
+          <div class="spec-row"><span>Material</span><strong><%= product.material || '—' %></strong></div>
+          <div class="spec-row"><span>Dimensions</span><strong><%= product.dimensions || '—' %></strong></div>
+          <div class="spec-row"><span>Eco Score</span><strong><%= product.eco_score %> / 5</strong></div>
+          <div class="spec-row">
+            <span>Stock</span>
+            <strong class="<%= product.stock <= 5 ? 'low-stock' : '' %>">
+              <%= product.stock <= 0 ? 'Out of stock' : product.stock <= 5 ? `Only ${product.stock} left!` : 'In stock' %>
+            </strong>
+          </div>
+        </div>
+
+        <!-- Add to cart -->
+        <% if (product.stock > 0) { %>
+        <form action="/cart/add" method="POST" class="add-to-cart-form product-atc">
+          <input type="hidden" name="product_id" value="<%= product.id %>">
+          <div class="qty-wrap">
+            <button type="button" class="qty-btn" onclick="changeQty(-1)">−</button>
+            <input type="number" name="quantity" id="qty-input" value="1" min="1" max="<%= product.stock %>">
+            <button type="button" class="qty-btn" onclick="changeQty(1)">+</button>
+          </div>
+          <button type="submit" class="btn btn-primary btn-lg">Add to Cart</button>
+        </form>
+        <% } else { %>
+        <p class="out-of-stock-msg">This product is currently out of stock.</p>
+        <% } %>
+
+        <button class="wishlist-btn-lg" data-id="<%= product.id %>" data-name="<%= product.name %>" data-price="<%= product.sale_price || product.price %>" data-image="<%= product.image %>">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+          Save to Wishlist
+        </button>
+
+        <!-- Description -->
+        <div class="product-description">
+          <h3>About this piece</h3>
+          <p><%= product.description %></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Related products -->
+    <% if (related.length) { %>
+    <div class="related-products">
+      <h2 data-aos="fade-up">You might also like</h2>
+      <div class="products-grid">
+        <% related.forEach((p, i) => { %>
+        <%- include('partials/product-card', { product: p, delay: i * 80 }) %>
+        <% }) %>
+      </div>
+    </div>
+    <% } %>
+  </div>
+</section>
+
+<script>
+function changeQty(delta) {
+  const input = document.getElementById('qty-input');
+  const max = parseInt(input.max) || 99;
+  input.value = Math.max(1, Math.min(max, parseInt(input.value) + delta));
+}
+</script>
+
+<%- include('partials/footer') %>

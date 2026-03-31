@@ -1,0 +1,88 @@
+<%- include('partials/head') %>
+<%- include('partials/header') %>
+
+<section class="section visualizer-section">
+  <div class="container" style="max-width:860px">
+    <div class="page-hero-text" data-aos="fade-up">
+      <h1>Room Visualizer</h1>
+      <p>Tell us about your space and we'll build the perfect furniture bundle for you.</p>
+    </div>
+
+    <!-- Step 1: Preferences form -->
+    <div id="visualizer-form-wrap" class="visualizer-form-card" data-aos="fade-up" data-aos-delay="100">
+      <form id="visualizer-form">
+        <div class="viz-form-grid">
+          <div class="form-group">
+            <label>Room Type *</label>
+            <div class="radio-pill-group" id="room-group">
+              <label class="radio-pill"><input type="radio" name="room" value="living-room"> 🛋️ Living Room</label>
+              <label class="radio-pill"><input type="radio" name="room" value="bedroom">     🛏️ Bedroom</label>
+              <label class="radio-pill"><input type="radio" name="room" value="dining">      🍽️ Dining</label>
+              <label class="radio-pill"><input type="radio" name="room" value="office">      💼 Office</label>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Style Preference *</label>
+            <div class="radio-pill-group" id="style-group">
+              <label class="radio-pill"><input type="radio" name="style" value="scandinavian"> Scandinavian</label>
+              <label class="radio-pill"><input type="radio" name="style" value="industrial">   Industrial</label>
+              <label class="radio-pill"><input type="radio" name="style" value="boho">          Boho</label>
+              <label class="radio-pill"><input type="radio" name="style" value="classic">       Classic</label>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Budget: <strong id="budget-label">4,999 RON</strong></label>
+            <input type="range" id="budget-slider" min="500" max="10000" step="100" value="4999" class="budget-slider">
+            <div class="budget-ticks"><span>500 RON</span><span>10,000 RON</span></div>
+          </div>
+
+          <div class="form-group">
+            <label>Eco preference</label>
+            <div class="radio-pill-group">
+              <label class="radio-pill"><input type="radio" name="eco" value="0" checked> Any</label>
+              <label class="radio-pill"><input type="radio" name="eco" value="3"> 🌿🌿🌿+</label>
+              <label class="radio-pill"><input type="radio" name="eco" value="4"> 🌿🌿🌿🌿+</label>
+              <label class="radio-pill"><input type="radio" name="eco" value="5"> 🌿🌿🌿🌿🌿</label>
+            </div>
+          </div>
+        </div>
+
+        <div id="viz-error" class="form-error" style="display:none"></div>
+        <button type="submit" class="btn btn-primary btn-lg" style="width:100%;margin-top:1.5rem">
+          <span id="viz-btn-text">Build My Room</span>
+          <span id="viz-spinner" style="display:none">Finding products...</span>
+        </button>
+      </form>
+    </div>
+
+    <!-- Results -->
+    <div id="visualizer-results" style="display:none">
+      <div class="viz-results-header" data-aos="fade-up">
+        <h2>Your Recommended Bundle</h2>
+        <p id="viz-results-sub">Here's what we picked for your space.</p>
+        <div class="viz-bundle-total">Bundle total: <strong id="bundle-total">0 RON</strong></div>
+      </div>
+
+      <div class="products-grid" id="viz-products-grid"></div>
+
+      <div style="text-align:center;margin-top:2rem" id="viz-actions">
+        <button class="btn btn-primary btn-lg" id="add-bundle-btn">Add All to Cart</button>
+        <button class="btn btn-outline btn-lg" id="viz-reset-btn" style="margin-left:1rem">Start Over</button>
+      </div>
+
+      <div id="viz-add-msg" style="display:none;text-align:center;margin-top:1rem"></div>
+    </div>
+
+    <!-- Empty results -->
+    <div id="visualizer-empty" style="display:none;text-align:center;padding:3rem 0">
+      <p>No products matched your criteria. Try adjusting your budget or eco preference.</p>
+      <button class="btn btn-outline" id="viz-retry-btn">Try Again</button>
+    </div>
+  </div>
+</section>
+
+<script src="/js/visualizer.js"></script>
+
+<%- include('partials/footer') %>

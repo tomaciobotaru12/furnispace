@@ -1,0 +1,66 @@
+<%- include('layout', { title, activePage: 'orders' }) %>
+
+<!-- Search & filters -->
+<form class="admin-search" method="GET" action="/admin/orders">
+  <input type="text" name="search" placeholder="Search order #, name or email…" value="<%= search %>">
+  <a href="/admin/orders" class="filter-pill <%= !status ? 'active' : '' %>">All</a>
+  <% ['pending','paid','processing','shipped','completed','cancelled'].forEach(s => { %>
+    <a href="/admin/orders?status=<%= s %><%= search ? '&search='+encodeURIComponent(search) : '' %>"
+       class="filter-pill <%= status === s ? 'active' : '' %>"><%= s.charAt(0).toUpperCase() + s.slice(1) %></a>
+  <% }) %>
+  <button type="submit" class="btn btn-ghost btn-sm">Search</button>
+</form>
+
+<div class="admin-card">
+  <div class="admin-card-header">
+    <h2>Orders <span style="font-weight:400;color:var(--muted);font-size:.85rem">(<%= total %>)</span></h2>
+  </div>
+  <div class="admin-table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Order #</th>
+          <th>Customer</th>
+          <th>Date</th>
+          <th>Total</th>
+          <th>Status</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        <% orders.forEach(o => { %>
+        <tr>
+          <td><strong>#<%= o.order_number %></strong></td>
+          <td>
+            <% if (o.first_name) { %>
+              <%= o.first_name %> <%= o.last_name %>
+              <div class="td-muted"><%= o.email %></div>
+            <% } else { %>
+              <span class="td-muted">Guest</span>
+            <% } %>
+          </td>
+          <td class="td-muted"><%= new Date(o.created_at).toLocaleDateString('en-GB') %></td>
+          <td>RON <%= Number(o.total).toFixed(2) %></td>
+          <td><span class="badge badge-<%= o.status %>"><%= o.status %></span></td>
+          <td><a href="/admin/orders/<%= o.order_number %>" class="btn btn-ghost btn-sm">View</a></td>
+        </tr>
+        <% }) %>
+        <% if (!orders.length) { %>
+        <tr><td colspan="6" style="text-align:center;color:var(--muted);padding:2rem">No orders found.</td></tr>
+        <% } %>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Pagination -->
+  <% if (totalPages > 1) { %>
+  <div class="admin-pagination">
+    <% for (let p = 1; p <= totalPages; p++) { %>
+      <a href="/admin/orders?page=<%= p %><%= status ? '&status='+status : '' %><%= search ? '&search='+encodeURIComponent(search) : '' %>"
+         class="page-btn <%= p === page ? 'active' : '' %>"><%= p %></a>
+    <% } %>
+  </div>
+  <% } %>
+</div>
+
+<%- include('layout-end') %>

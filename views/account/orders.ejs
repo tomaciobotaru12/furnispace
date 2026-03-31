@@ -1,0 +1,57 @@
+<%- include('../partials/head') %>
+<%- include('../partials/header') %>
+
+<section class="section account-section">
+  <div class="container account-layout">
+
+    <aside class="account-sidebar">
+      <div class="account-avatar"><span><%= user.first_name[0] %><%= user.last_name[0] %></span></div>
+      <p class="account-sidebar-name"><%= user.first_name %> <%= user.last_name %></p>
+      <p class="account-sidebar-email"><%= user.email %></p>
+      <nav class="account-nav">
+        <a href="/account">Dashboard</a>
+        <a href="/account/orders" class="active">My Orders</a>
+        <a href="/wishlist">Wishlist</a>
+        <a href="/account/logout" style="color:var(--color-error)">Log Out</a>
+      </nav>
+    </aside>
+
+    <div class="account-main">
+      <h1 class="page-title">My Orders</h1>
+
+      <div class="account-card">
+        <% if (orders.length) { %>
+        <div class="orders-table-wrap">
+          <table class="orders-table">
+            <thead><tr><th>Order</th><th>Date</th><th>Total</th><th>Status</th><th></th></tr></thead>
+            <tbody>
+              <% orders.forEach(o => { %>
+              <tr>
+                <td><strong><%= o.order_number %></strong></td>
+                <td><%= new Date(o.created_at).toLocaleDateString('en-GB') %></td>
+                <td><%= o.total.toLocaleString('ro-RO') %> RON</td>
+                <td><span class="order-status status-<%= o.status %>"><%= o.status %></span></td>
+                <td>
+                  <a href="/account/orders/<%= o.order_number %>" class="btn btn-outline btn-sm">Details</a>
+                  <a href="/checkout/invoice/<%= o.order_number %>" class="btn btn-outline btn-sm" target="_blank">Invoice</a>
+                </td>
+              </tr>
+              <% }) %>
+            </tbody>
+          </table>
+        </div>
+        <% } else { %>
+        <div class="empty-state" style="padding:2.5rem 0;text-align:center">
+          <p style="font-size:2.5rem;margin-bottom:1rem">📦</p>
+          <h2>No orders yet</h2>
+          <p>Your completed orders will appear here.</p>
+          <a href="/shop" class="btn btn-primary" style="margin-top:1.5rem">Start Shopping</a>
+        </div>
+        <% } %>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<%- include('../partials/footer') %>

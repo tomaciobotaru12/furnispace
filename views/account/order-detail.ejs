@@ -1,0 +1,75 @@
+<%- include('../partials/head') %>
+<%- include('../partials/header') %>
+
+<section class="section account-section">
+  <div class="container account-layout">
+
+    <aside class="account-sidebar">
+      <div class="account-avatar"><span><%= user.first_name[0] %><%= user.last_name[0] %></span></div>
+      <p class="account-sidebar-name"><%= user.first_name %> <%= user.last_name %></p>
+      <p class="account-sidebar-email"><%= user.email %></p>
+      <nav class="account-nav">
+        <a href="/account">Dashboard</a>
+        <a href="/account/orders" class="active">My Orders</a>
+        <a href="/wishlist">Wishlist</a>
+        <a href="/account/logout" style="color:var(--color-error)">Log Out</a>
+      </nav>
+    </aside>
+
+    <div class="account-main">
+      <div class="breadcrumb"><a href="/account">Account</a> › <a href="/account/orders">Orders</a> › <%= order.order_number %></div>
+      <h1 class="page-title">Order <%= order.order_number %></h1>
+
+      <!-- Status + meta -->
+      <div class="account-card" style="margin-bottom:1.5rem">
+        <div class="order-detail-meta">
+          <div><span class="meta-label">Date</span><strong><%= new Date(order.created_at).toLocaleDateString('en-GB') %></strong></div>
+          <div><span class="meta-label">Status</span><span class="order-status status-<%= order.status %>"><%= order.status %></span></div>
+          <div><span class="meta-label">Payment</span><strong><%= order.payment_method || 'Stripe' %></strong></div>
+          <div><span class="meta-label">Total</span><strong><%= order.total.toLocaleString('ro-RO') %> RON</strong></div>
+        </div>
+      </div>
+
+      <!-- Items -->
+      <div class="account-card" style="margin-bottom:1.5rem">
+        <div class="account-card-header"><h2>Items Ordered</h2></div>
+        <% items.forEach(item => { %>
+        <div class="order-item-row">
+          <% if (item.product_image) { %>
+          <img src="<%= item.product_image %>" alt="<%= item.product_name %>" width="70" height="70" loading="lazy">
+          <% } %>
+          <div style="flex:1">
+            <p style="font-weight:500"><%= item.product_name %></p>
+            <p class="muted">Qty: <%= item.quantity %> × <%= item.price.toLocaleString('ro-RO') %> RON</p>
+          </div>
+          <strong><%= (item.price * item.quantity).toLocaleString('ro-RO') %> RON</strong>
+        </div>
+        <% }) %>
+        <div class="order-totals" style="margin-top:1rem;padding-top:1rem;border-top:1px solid var(--color-border)">
+          <div class="summary-row"><span>Subtotal</span><span><%= order.subtotal.toLocaleString('ro-RO') %> RON</span></div>
+          <div class="summary-row"><span>Shipping</span><span><%= order.shipping === 0 ? 'Free' : order.shipping + ' RON' %></span></div>
+          <div class="summary-row summary-total"><span>Total</span><strong><%= order.total.toLocaleString('ro-RO') %> RON</strong></div>
+        </div>
+      </div>
+
+      <!-- Billing address -->
+      <% if (billing) { %>
+      <div class="account-card" style="margin-bottom:1.5rem">
+        <div class="account-card-header"><h2>Billing Address</h2></div>
+        <p><%= billing.first_name %> <%= billing.last_name %></p>
+        <p class="muted"><%= billing.address %>, <%= billing.city %><% if (billing.county) { %>, <%= billing.county %><% } %></p>
+        <p class="muted"><%= billing.country %> <%= billing.postal_code %></p>
+        <p class="muted"><%= billing.email %></p>
+      </div>
+      <% } %>
+
+      <div style="display:flex;gap:1rem;flex-wrap:wrap">
+        <a href="/account/orders" class="btn btn-outline">← Back to Orders</a>
+        <a href="/checkout/invoice/<%= order.order_number %>" class="btn btn-primary" target="_blank">Print Invoice</a>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<%- include('../partials/footer') %>

@@ -1,0 +1,46 @@
+<%- include('../partials/head') %>
+<%- include('../partials/header') %>
+
+<section class="section auth-section">
+  <div class="container auth-wrap">
+    <div class="auth-card" data-aos="fade-up">
+      <h1 class="auth-title">Welcome Back</h1>
+      <p class="auth-subtitle">Log in to your FurniSpace account</p>
+
+      <% if (typeof error !== 'undefined' && error) { %>
+      <div class="alert alert-error" style="margin-bottom:1.25rem"><%= error %></div>
+      <% } %>
+
+      <form action="/account/login" method="POST">
+        <input type="hidden" name="redirect" value="<%= redirect %>">
+
+        <div class="form-group">
+          <label for="email">Email Address</label>
+          <input type="email" id="email" name="email" required autofocus>
+        </div>
+        <div class="form-group">
+          <label for="password">Password</label>
+          <div class="password-wrap">
+            <input type="password" id="password" name="password" required>
+            <button type="button" class="toggle-pw" onclick="togglePw('password')">Show</button>
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-lg" style="width:100%">Log In</button>
+      </form>
+
+      <p class="auth-switch">Don't have an account? <a href="/account/register">Create one</a></p>
+    </div>
+  </div>
+</section>
+
+<script>
+function togglePw(id) {
+  const input = document.getElementById(id);
+  const btn = input.nextElementSibling;
+  if (input.type === 'password') { input.type = 'text'; btn.textContent = 'Hide'; }
+  else { input.type = 'password'; btn.textContent = 'Show'; }
+}
+</script>
+
+<%- include('../partials/footer') %>

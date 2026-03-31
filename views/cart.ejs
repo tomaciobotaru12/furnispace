@@ -1,0 +1,88 @@
+<% const hideCartBubble = true %>
+<%- include('partials/head') %>
+<%- include('partials/header') %>
+
+<section class="section cart-section">
+  <div class="container">
+    <h1 class="page-title">Your Cart</h1>
+
+    <% if (cartItems.length) { %>
+    <div class="cart-layout">
+      <!-- Items -->
+      <div class="cart-items">
+        <% cartItems.forEach(item => { %>
+        <div class="cart-item">
+          <a href="/product/<%= item.slug %>">
+            <img src="<%= item.image %>" alt="<%= item.name %>" width="100" height="100" loading="lazy">
+          </a>
+          <div class="cart-item-info">
+            <a href="/product/<%= item.slug %>" class="cart-item-name"><%= item.name %></a>
+            <p class="cart-item-meta"><%= item.material || '' %></p>
+            <div class="cart-item-price">
+              <% if (item.sale_price) { %>
+              <span class="price-sale"><%= item.sale_price.toLocaleString('ro-RO') %> RON</span>
+              <% } else { %>
+              <span class="price-regular"><%= item.price.toLocaleString('ro-RO') %> RON</span>
+              <% } %>
+            </div>
+          </div>
+          <div class="cart-item-qty">
+            <form action="/cart/update" method="POST" style="display:flex;align-items:center;gap:.4rem">
+              <input type="hidden" name="product_id" value="<%= item.id %>">
+              <button type="button" class="qty-btn" onclick="stepQty(this,-1)">−</button>
+              <input type="number" name="quantity" value="<%= item.quantity %>" min="1" max="<%= item.stock %>" onchange="this.form.submit()" style="width:50px;text-align:center">
+              <button type="button" class="qty-btn" onclick="stepQty(this,1)">+</button>
+            </form>
+          </div>
+          <div class="cart-item-total">
+            <%= item.lineTotal.toLocaleString('ro-RO') %> RON
+          </div>
+          <form action="/cart/remove" method="POST">
+            <input type="hidden" name="product_id" value="<%= item.id %>">
+            <button type="submit" class="cart-remove-btn" aria-label="Remove">✕</button>
+          </form>
+        </div>
+        <% }) %>
+      </div>
+
+      <!-- Summary -->
+      <div class="cart-summary">
+        <h3>Order Summary</h3>
+        <div class="summary-row"><span>Subtotal</span><span><%= subtotal.toLocaleString('ro-RO') %> RON</span></div>
+        <div class="summary-row">
+          <span>Shipping</span>
+          <span><%= shipping === 0 ? 'Free 🎉' : shipping.toLocaleString('ro-RO') + ' RON' %></span>
+        </div>
+        <% if (shipping > 0) { %>
+        <p class="shipping-hint">Add <%= (1000 - subtotal).toLocaleString('ro-RO') %> RON more for free shipping</p>
+        <% } %>
+        <div class="summary-row summary-total"><span>Total</span><strong><%= total.toLocaleString('ro-RO') %> RON</strong></div>
+        <a href="/checkout" class="btn btn-primary btn-lg" style="width:100%;margin-top:1.5rem;text-align:center">Proceed to Checkout</a>
+        <a href="/shop" class="btn btn-outline btn-sm" style="width:100%;margin-top:.75rem;text-align:center">Continue Shopping</a>
+        <form action="/cart/clear" method="POST" style="margin-top:.75rem">
+          <button type="submit" class="btn-text">Clear cart</button>
+        </form>
+      </div>
+    </div>
+    <% } else { %>
+    <div class="empty-state" style="padding:4rem 0;text-align:center">
+      <p style="font-size:3rem;margin-bottom:1rem">🛒</p>
+      <h2>Your cart is empty</h2>
+      <p>Looks like you haven't added anything yet.</p>
+      <a href="/shop" class="btn btn-primary" style="margin-top:1.5rem">Start Shopping</a>
+    </div>
+    <% } %>
+  </div>
+</section>
+
+<script>
+function stepQty(btn, delta) {
+  const form = btn.closest('form');
+  const input = form.querySelector('input[name="quantity"]');
+  const max = parseInt(input.max) || 99;
+  input.value = Math.max(1, Math.min(max, parseInt(input.value) + delta));
+  form.submit();
+}
+</script>
+
+<%- include('partials/footer') %>

@@ -1,0 +1,100 @@
+<%- include('partials/head') %>
+<%- include('partials/header') %>
+
+<section class="section contact-section">
+  <div class="container">
+    <h1 class="page-title" data-aos="fade-up">Get in Touch</h1>
+    <p class="page-subtitle" data-aos="fade-up" data-aos-delay="100">We'd love to hear from you. Drop us a message and we'll get back within 24 hours.</p>
+
+    <div class="contact-layout">
+      <!-- Info -->
+      <div class="contact-info" data-aos="fade-right">
+        <div class="contact-card">
+          <span class="contact-icon">📍</span>
+          <div>
+            <h4>Visit Us</h4>
+            <p>Str. Mobilierului 12, Sector 1<br>București, Romania</p>
+          </div>
+        </div>
+        <div class="contact-card">
+          <span class="contact-icon">📞</span>
+          <div>
+            <h4>Call Us</h4>
+            <p>+40 21 123 4567<br>Mon – Fri, 9am – 6pm</p>
+          </div>
+        </div>
+        <div class="contact-card">
+          <span class="contact-icon">✉️</span>
+          <div>
+            <h4>Email Us</h4>
+            <p>contact@furnispace.ro<br>We reply within 24h</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Form -->
+      <div class="contact-form-wrap" data-aos="fade-left">
+        <form id="contact-form">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="contact-name">Your Name *</label>
+              <input type="text" id="contact-name" name="name" required>
+            </div>
+            <div class="form-group">
+              <label for="contact-email">Email Address *</label>
+              <input type="email" id="contact-email" name="email" required>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="contact-subject">Subject</label>
+            <input type="text" id="contact-subject" name="subject">
+          </div>
+          <div class="form-group">
+            <label for="contact-message">Message *</label>
+            <textarea id="contact-message" name="message" rows="6" required></textarea>
+          </div>
+          <button type="submit" class="btn btn-primary btn-lg" id="contact-submit">
+            <span id="contact-btn-text">Send Message</span>
+            <span id="contact-spinner" style="display:none">Sending...</span>
+          </button>
+          <div id="contact-result" style="margin-top:1rem;display:none"></div>
+        </form>
+      </div>
+    </div>
+  </div>
+</section>
+
+<script>
+document.getElementById('contact-form').addEventListener('submit', async e => {
+  e.preventDefault();
+  const btn = document.getElementById('contact-submit');
+  btn.disabled = true;
+  document.getElementById('contact-btn-text').style.display = 'none';
+  document.getElementById('contact-spinner').style.display = '';
+  document.getElementById('contact-result').style.display = 'none';
+
+  const data = Object.fromEntries(new FormData(e.target));
+  try {
+    const res = await fetch('/contact', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    const result = await res.json();
+    const el = document.getElementById('contact-result');
+    el.style.display = '';
+    el.className = result.success ? 'alert alert-success' : 'alert alert-error';
+    el.textContent = result.success ? result.message : result.error;
+    if (result.success) e.target.reset();
+  } catch {
+    document.getElementById('contact-result').textContent = 'Something went wrong. Please try again.';
+    document.getElementById('contact-result').style.display = '';
+  } finally {
+    btn.disabled = false;
+    document.getElementById('contact-btn-text').style.display = '';
+    document.getElementById('contact-spinner').style.display = 'none';
+  }
+});
+</script>
+
+<%- include('partials/footer') %>

@@ -1,0 +1,45 @@
+<%- include('partials/head') %>
+<%- include('partials/header') %>
+
+<section class="section order-success-section">
+  <div class="container" style="max-width:680px">
+    <div class="success-card" data-aos="zoom-in">
+      <div class="success-icon">✓</div>
+      <h1>Order Confirmed!</h1>
+      <p class="success-sub">Thank you<%= billing && billing.first_name ? ', ' + billing.first_name : '' %>! Your order has been placed successfully.</p>
+      <p class="order-number">Order Number: <strong><%= order.order_number %></strong></p>
+
+      <div class="order-items-list">
+        <% items.forEach(item => { %>
+        <div class="order-item-row">
+          <% if (item.product_image) { %>
+          <img src="<%= item.product_image %>" alt="<%= item.product_name %>" width="60" height="60" loading="lazy">
+          <% } %>
+          <div>
+            <p><%= item.product_name %></p>
+            <p class="muted">Qty: <%= item.quantity %></p>
+          </div>
+          <span><%= (item.price * item.quantity).toLocaleString('ro-RO') %> RON</span>
+        </div>
+        <% }) %>
+      </div>
+
+      <div class="order-totals">
+        <div class="summary-row"><span>Subtotal</span><span><%= order.subtotal.toLocaleString('ro-RO') %> RON</span></div>
+        <div class="summary-row"><span>Shipping</span><span><%= order.shipping === 0 ? 'Free' : order.shipping + ' RON' %></span></div>
+        <div class="summary-row summary-total"><span>Total paid</span><strong><%= order.total.toLocaleString('ro-RO') %> RON</strong></div>
+      </div>
+
+      <% if (billing && billing.email) { %>
+      <p class="muted" style="margin-top:1rem">A confirmation has been sent to <strong><%= billing.email %></strong>.</p>
+      <% } %>
+
+      <div class="success-actions">
+        <a href="/checkout/invoice/<%= order.order_number %>" class="btn btn-outline" target="_blank">View Invoice</a>
+        <a href="/shop" class="btn btn-primary">Continue Shopping</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<%- include('partials/footer') %>

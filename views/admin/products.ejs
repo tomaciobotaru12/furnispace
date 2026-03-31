@@ -1,0 +1,62 @@
+<%- include('layout', { title, activePage: 'products' }) %>
+
+<div class="admin-card">
+  <div class="admin-card-header">
+    <h2>Products <span style="font-weight:400;color:var(--muted);font-size:.85rem">(<%= products.length %>)</span></h2>
+  </div>
+  <div class="admin-table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Product</th>
+          <th>Category</th>
+          <th>Price</th>
+          <th>Stock</th>
+          <th>Update Stock</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% products.forEach(p => { %>
+        <tr>
+          <td>
+            <div style="display:flex;align-items:center;gap:.75rem">
+              <% if (p.image) { %>
+                <img src="<%= p.image %>" class="product-thumb" alt="">
+              <% } %>
+              <div>
+                <div style="font-weight:500"><%= p.name %></div>
+                <% if (p.sale_price) { %><span class="badge badge-pending" style="margin-top:2px">Sale</span><% } %>
+              </div>
+            </div>
+          </td>
+          <td class="td-muted"><%= p.category_name %></td>
+          <td>
+            <% if (p.sale_price) { %>
+              <span style="color:var(--accent)">RON <%= Number(p.sale_price).toFixed(2) %></span>
+              <span class="td-muted" style="text-decoration:line-through;margin-left:.35rem">RON <%= Number(p.price).toFixed(2) %></span>
+            <% } else { %>
+              RON <%= Number(p.price).toFixed(2) %>
+            <% } %>
+          </td>
+          <td>
+            <span class="<%= p.stock === 0 ? 'badge badge-cancelled' : p.stock < 5 ? 'badge badge-pending' : '' %>">
+              <%= p.stock %>
+            </span>
+          </td>
+          <td>
+            <form method="POST" action="/admin/products/<%= p.id %>/stock" style="display:flex;gap:.5rem;align-items:center">
+              <input type="number" name="stock" value="<%= p.stock %>" min="0" style="width:70px;padding:.3rem .5rem;background:var(--bg);border:1px solid var(--border);border-radius:6px;color:var(--text);font-size:.8rem;outline:none">
+              <button type="submit" class="btn btn-ghost btn-sm">Save</button>
+            </form>
+          </td>
+        </tr>
+        <% }) %>
+        <% if (!products.length) { %>
+        <tr><td colspan="5" style="text-align:center;color:var(--muted);padding:2rem">No products found.</td></tr>
+        <% } %>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<%- include('layout-end') %>
