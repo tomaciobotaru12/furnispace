@@ -1,5 +1,6 @@
 require('dotenv').config({ path: require('path').join(__dirname, '../.env') });
 const db = require('./db');
+const bcrypt = require('bcryptjs');
 
 // Only seed if products table is empty
 const count = db.prepare('SELECT COUNT(*) as n FROM products').get();
@@ -256,3 +257,11 @@ const seedAll = db.transaction(() => {
 
 seedAll();
 console.log(`Seeded ${products.length} products across ${categories.length} categories.`);
+
+// Demo user
+const hash = bcrypt.hashSync('demo1234', 10);
+db.prepare(`
+  INSERT OR IGNORE INTO users (first_name, last_name, email, password_hash)
+  VALUES (?, ?, ?, ?)
+`).run('Demo', 'User', 'demo@furnispace.ro', hash);
+console.log('Demo user created: demo@furnispace.ro / demo1234');
