@@ -122,11 +122,14 @@ router.get('/orders/:orderNumber', requireAuth, (req, res) => {
   const items   = db.prepare('SELECT * FROM order_items WHERE order_id = ?').all(order.id);
   const billing = db.prepare('SELECT * FROM order_billing WHERE order_id = ?').get(order.id);
 
+  const user = db.prepare('SELECT * FROM users WHERE id = ?').get(req.session.userId);
+
   res.render('account/order-detail', {
     title: `Order ${order.order_number} – FurniSpace`,
     order,
     items,
     billing,
+    user,
   });
 });
 

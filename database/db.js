@@ -112,11 +112,24 @@ db.exec(`
     message TEXT NOT NULL,
     created_at TEXT DEFAULT (datetime('now'))
   );
+
+  CREATE TABLE IF NOT EXISTS discount_codes (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    code TEXT NOT NULL UNIQUE,
+    type TEXT NOT NULL DEFAULT 'percent',
+    value REAL NOT NULL,
+    active INTEGER DEFAULT 1
+  );
 `);
 
-// Add user_id to orders if the column doesn't exist yet (safe migration)
+// Safe migrations
+try { db.exec('ALTER TABLE orders ADD COLUMN user_id INTEGER REFERENCES users(id)'); } catch (_) {}
+try { db.exec('ALTER TABLE orders ADD COLUMN discount_amount REAL DEFAULT 0'); } catch (_) {}
+try { db.exec('ALTER TABLE orders ADD COLUMN discount_code TEXT'); } catch (_) {}
+
+// Seed WELCOME10 discount code if not present
 try {
-  db.exec('ALTER TABLE orders ADD COLUMN user_id INTEGER REFERENCES users(id)');
-} catch (_) { /* column already exists */ }
+  db.prepare("INSERT OR IGNORE INTO discount_codes (code, type, value) VALUES ('WELCOME10', 'percent', 10)").run();
+} catch (_) {}
 
 module.exports = db;

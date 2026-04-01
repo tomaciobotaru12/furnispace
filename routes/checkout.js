@@ -35,6 +35,26 @@ router.get('/', (req, res) => {
   });
 });
 
+// Apply discount code
+router.post('/apply-discount', (req, res) => {
+  const code = (req.body.code || '').trim().toUpperCase();
+  const row = db.prepare("SELECT * FROM discount_codes WHERE code = ? AND active = 1").get(code);
+  if (!row) return res.json({ error: 'Invalid or expired discount code.' });
+
+  const cartItems = buildCart(req.session);
+  const subtotal = cartItems.reduce((s, i) => s + i.lineTotal, 0);
+  const shipping = subtotal >= 1000 ? 0 : 50;
+
+  const discountAmount = row.type === 'percent'
+    ? Math.round(subtotal * row.value) / 100
+    : Math.min(row.value, subtotal);
+
+  const total = Math.max(0, subtotal - discountAmount + shipping);
+
+  req.session.discount = { code: row.code, type: row.type, value: row.value, amount: discountAmount };
+  res.json({ success: true, code: row.code, discountAmount, total, message: `${row.value}% off applied!` });
+});
+
 // Create Stripe PaymentIntent
 router.post('/create-payment-intent', async (req, res) => {
   try {
@@ -43,18 +63,18 @@ router.post('/create-payment-intent', async (req, res) => {
 
     const subtotal = cartItems.reduce((s, i) => s + i.lineTotal, 0);
     const shipping = subtotal >= 1000 ? 0 : 50;
-    const total = subtotal + shipping;
+    const discount = req.session.discount || null;
+    const discountAmount = discount ? discount.amount : 0;
+    const total = Math.max(0, subtotal - discountAmount + shipping);
 
     const intent = await stripe.paymentIntents.create({
-      amount: Math.round(total * 100), // RON in bani
+      amount: Math.round(total * 100),
       currency: 'ron',
       automatic_payment_methods: { enabled: true },
       metadata: { cart: JSON.stringify(cartItems.map(i => ({ id: i.id, qty: i.quantity }))) },
     });
 
-    // Store billing info in session for later
     req.session.pendingBilling = req.body;
-
     res.json({ clientSecret: intent.client_secret, total });
   } catch (err) {
     console.error('Stripe error:', err);
@@ -70,16 +90,18 @@ router.post('/complete', (req, res) => {
 
   const subtotal = cartItems.reduce((s, i) => s + i.lineTotal, 0);
   const shipping = subtotal >= 1000 ? 0 : 50;
-  const total = subtotal + shipping;
+  const discount = req.session.discount || null;
+  const discountAmount = discount ? discount.amount : 0;
+  const total = Math.max(0, subtotal - discountAmount + shipping);
   const orderNumber = generateOrderNumber();
 
   const userId = req.session.userId || null;
 
   const saveOrder = db.transaction(() => {
     const orderId = db.prepare(`
-      INSERT INTO orders (order_number, status, subtotal, shipping, tax, total, payment_method, stripe_payment_id, user_id)
-      VALUES (?, 'paid', ?, ?, 0, ?, 'stripe', ?, ?)
-    `).run(orderNumber, subtotal, shipping, total, payment_intent_id || null, userId).lastInsertRowid;
+      INSERT INTO orders (order_number, status, subtotal, shipping, tax, total, discount_amount, discount_code, payment_method, stripe_payment_id, user_id)
+      VALUES (?, 'paid', ?, ?, 0, ?, ?, ?, 'stripe', ?, ?)
+    `).run(orderNumber, subtotal, shipping, total, discountAmount, discount ? discount.code : null, payment_intent_id || null, userId).lastInsertRowid;
 
     const b = billing || {};
     db.prepare(`
@@ -99,6 +121,7 @@ router.post('/complete', (req, res) => {
 
   const orderId = saveOrder();
   req.session.cart = [];
+  req.session.discount = null;
 
   // Send confirmation email (fire and forget)
   const billing_data = billing || {};

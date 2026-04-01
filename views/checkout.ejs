@@ -78,7 +78,19 @@
         <% }) %>
         <div class="summary-row"><span>Subtotal</span><span><%= subtotal.toLocaleString('ro-RO') %> RON</span></div>
         <div class="summary-row"><span>Shipping</span><span><%= shipping === 0 ? 'Free' : shipping + ' RON' %></span></div>
-        <div class="summary-row summary-total"><span>Total</span><strong><%= total.toLocaleString('ro-RO') %> RON</strong></div>
+        <div class="summary-row discount-row" id="discount-row" style="display:none;color:#22c55e"><span>Discount (<span id="discount-label"></span>)</span><span id="discount-display"></span></div>
+        <div class="summary-row summary-total"><span>Total</span><strong id="total-summary"><%= total.toLocaleString('ro-RO') %> RON</strong></div>
+
+        <!-- Discount code -->
+        <div style="margin-top:1rem;padding-top:1rem;border-top:1px solid var(--color-border)">
+          <label style="font-size:.8rem;font-weight:600;text-transform:uppercase;letter-spacing:.4px;color:var(--color-muted);display:block;margin-bottom:.5rem">Discount Code</label>
+          <div style="display:flex;gap:.5rem">
+            <input type="text" id="discount-input" placeholder="e.g. WELCOME10" style="flex:1;padding:.55rem .85rem;border:1px solid var(--color-border);border-radius:6px;font-size:.875rem;outline:none;background:var(--color-bg);color:var(--color-text)">
+            <button type="button" id="apply-discount-btn" class="btn btn-outline" style="white-space:nowrap">Apply</button>
+          </div>
+          <div id="discount-msg" style="margin-top:.4rem;font-size:.8rem"></div>
+        </div>
+
         <div class="secure-badge">🔒 Secured by Stripe</div>
       </div>
     </div>
@@ -86,6 +98,40 @@
 </section>
 
 <script>
+// Discount code
+let appliedDiscount = 0;
+
+document.getElementById('apply-discount-btn').addEventListener('click', async () => {
+  const code = document.getElementById('discount-input').value.trim();
+  const msg = document.getElementById('discount-msg');
+  if (!code) return;
+
+  const res = await fetch('/checkout/apply-discount', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ code }),
+  });
+  const data = await res.json();
+
+  if (data.error) {
+    msg.style.color = '#ef4444';
+    msg.textContent = data.error;
+    return;
+  }
+
+  appliedDiscount = data.discountAmount;
+  msg.style.color = '#22c55e';
+  msg.textContent = data.message;
+
+  document.getElementById('discount-row').style.display = '';
+  document.getElementById('discount-label').textContent = data.code;
+  document.getElementById('discount-display').textContent = '-' + data.discountAmount.toLocaleString('ro-RO') + ' RON';
+  document.getElementById('total-summary').textContent = data.total.toLocaleString('ro-RO') + ' RON';
+  document.getElementById('total-display').textContent = data.total.toLocaleString('ro-RO') + ' RON';
+  document.getElementById('discount-input').disabled = true;
+  document.getElementById('apply-discount-btn').disabled = true;
+});
+
 const stripePK = '<%= stripePK %>';
 
 if (stripePK && stripePK !== 'pk_test_placeholder' && !stripePK.startsWith('undefined')) {
